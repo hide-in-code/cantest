@@ -21,7 +21,7 @@ if [[ -z $TARGET || -z $TARGET_OPENSSL ]];then
         elif [[ "$CANDY_ARCH" == "mips64el" ]]; then TARGET="mips64el-unknown-linux-musl";TARGET_OPENSSL="linux64-mips64";UPX=0
         elif [[ "$CANDY_ARCH" == "riscv32" ]]; then TARGET="riscv32-unknown-linux-musl";TARGET_OPENSSL="linux32-riscv32";UPX=0
         elif [[ "$CANDY_ARCH" == "riscv64" ]]; then TARGET="riscv64-unknown-linux-musl";TARGET_OPENSSL="linux64-riscv64";UPX=0
-        elif [[ "$CANDY_ARCH" == "x86_64" ]]; then TARGET="x86_64-unknown-linux-musl";TARGET_OPENSSL="linux-x86_64";UPX=1
+        elif [[ "$CANDY_ARCH" == "x86_64" ]]; then TARGET="x86_64-multilib-linux-musl";TARGET_OPENSSL="linux-x86_64";UPX=1
         else echo "Unknown CANDY_ARCH: $CANDY_ARCH";exit 1;fi
     elif [[ "$CANDY_OS" == "macos" ]]; then
         echo "macos is not supported yet";exit 1
@@ -37,21 +37,21 @@ echo "TARGET_OPENSSL: $TARGET_OPENSSL"
 TOOLCHAINS="$CANDY_WORKSPACE/toolchains"
 COMPILER_ROOT="$TOOLCHAINS/$TARGET"
 
-if [ ! -d "$COMPILER_ROOT" ]; then
-    mkdir -p $TOOLCHAINS
-    RESPONSE=$(curl -s https://api.github.com/repos/musl-cross/musl-cross/releases/latest)
-    VERSION=$(echo "$RESPONSE" | grep 'tag_name' | cut -d'"' -f4)
-    wget -c https://github.com/musl-cross/musl-cross/releases/download/$VERSION/$TARGET.tar.xz -P $TOOLCHAINS
-    tar xvf $COMPILER_ROOT.tar.xz -C $TOOLCHAINS
-fi
-
-export CC="$COMPILER_ROOT/bin/$TARGET-gcc"
-export CXX="$COMPILER_ROOT/bin/$TARGET-g++"
-export AR="$COMPILER_ROOT/bin/$TARGET-ar"
-export LD="$COMPILER_ROOT/bin/$TARGET-ld"
-export RANLIB="$COMPILER_ROOT/bin/$TARGET-ranlib"
-export STRIP="$COMPILER_ROOT/bin/$TARGET-strip"
-export CFLAGS="-I $COMPILER_ROOT/$TARGET/include -L $COMPILER_ROOT/$TARGET/lib"
+# if [ ! -d "$COMPILER_ROOT" ]; then
+#     mkdir -p $TOOLCHAINS
+#     RESPONSE=$(curl -s https://api.github.com/repos/musl-cross/musl-cross/releases/latest)
+#     VERSION=$(echo "$RESPONSE" | grep 'tag_name' | cut -d'"' -f4)
+#     # wget -q -c https://gh.api.99988866.xyz/https://github.com/musl-cross/musl-cross/releases/download/$VERSION/$TARGET.tgz -P $TOOLCHAINS
+#     wget -q -c https://gh.api.99988866.xyz/https://github.com/musl-cross/musl-cross/releases/download/20241103/x86_64-unknown-linux-musl.tar.xz -P $TOOLCHAINS
+#     tar xf $COMPILER_ROOT -C $TOOLCHAINS
+# fi
+export CC="$TOOLCHAINS/x86_64-unknown-linux-musl/bin/x86_64-unknown-linux-musl-gcc"
+export CXX="$TOOLCHAINS/x86_64-unknown-linux-musl/bin/x86_64-unknown-linux-musl-g++"
+export AR="$TOOLCHAINS/x86_64-unknown-linux-musl/bin/x86_64-unknown-linux-musl-ar"
+export LD="$TOOLCHAINS/x86_64-unknown-linux-musl/bin/x86_64-unknown-linux-musl-ld"
+export RANLIB="$TOOLCHAINS/x86_64-unknown-linux-musl/bin/x86_64-unknown-linux-musl-ranlib"
+export STRIP="$TOOLCHAINS/x86_64-unknown-linux-musl/bin/x86_64-unknown-linux-musl-strip"
+export CFLAGS="-I $TOOLCHAINS/x86_64-unknown-linux-musl/include -L $TOOLCHAINS/x86_64-unknown-linux-musl/lib"
 export LDFLAGS="-static $CFLAGS"
 
 if [[ $CANDY_OS && $CANDY_ARCH ]];then
@@ -64,7 +64,7 @@ fi
 
 if which ninja >/dev/null 2>&1;then GENERATOR="Ninja";else GENERATOR="Unix Makefiles";fi
 SOURCE_DIR="$(dirname $(readlink -f "$0"))/../"
-cmake -G "$GENERATOR" -B "$BUILD_DIR" -DCMAKE_BUILD_TYPE=Release -DCANDY_STATIC=1 -DTARGET_OPENSSL=$TARGET_OPENSSL $SOURCE_DIR
+cmake -G "Unix Makefiles" -B "$BUILD_DIR" -DCMAKE_BUILD_TYPE=Release -DCANDY_STATIC=1 -DTARGET_OPENSSL=$TARGET_OPENSSL $SOURCE_DIR
 cmake --build $BUILD_DIR --parallel $(nproc)
 mkdir -p $OUTPUT_DIR && cp $BUILD_DIR/src/main/candy $OUTPUT_DIR/candy
 
