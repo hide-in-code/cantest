@@ -26,7 +26,7 @@ namespace {
 class MacTun {
 public:
     int setName(const std::string &name) {
-        this->name = name.empty() ? "candy" : "candy-" + name;
+        this->name = name.empty() ? "utodata" : "utodata-" + name;
         return 0;
     }
 
