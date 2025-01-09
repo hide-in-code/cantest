@@ -488,7 +488,6 @@ void Client::sendAuthMessage() {
 
     AuthHeader header(address.getIp());
     header.updateHash(this->password);
-    header.setName(this->tunName);
 
     WebSocketMessage message;
     message.buffer.assign((char *)(&header), sizeof(AuthHeader));

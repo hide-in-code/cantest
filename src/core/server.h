@@ -42,7 +42,6 @@ private:
     void handleCloseMessage(WebSocketMessage &message);
 
     void updateClientRoute(WebSocketMessage &message, uint32_t client);
-    void updateClientList();
 
     bool running = false;
     uint16_t port;
@@ -54,7 +53,6 @@ private:
     Address dynamic;
     bool dynamicAddrEnabled = false;
 
-    std::unordered_map<uint32_t, std::string> ipClientMap;
     std::unordered_map<uint32_t, WebSocketConn> ipWsMap;
     std::map<WebSocketConn, uint32_t> wsIpMap;
     std::map<WebSocketConn, std::string> wsMacMap;
