@@ -9,6 +9,7 @@
 #include <spdlog/fmt/bin_to_hex.h>
 #include <spdlog/spdlog.h>
 #include <sstream>
+#include <fstream>
 
 namespace Candy {
 
@@ -209,9 +210,15 @@ void Server::handleAuthMessage(WebSocketMessage &message) {
         spdlog::info("connect: {}", address.getIpStr());
     }
 
+    // 记录当前 ip 和 客户端名
+    this->ipClientMap[address.getIp()] = header->getName();
+
     this->ipWsMap[address.getIp()] = message.conn;
     this->wsIpMap[message.conn] = address.getIp();
     updateClientRoute(message, address.getIp());
+
+    // 更新客户端列表
+    updateClientList();
 }
 
 void Server::handleForwardMessage(WebSocketMessage &message) {
@@ -492,12 +499,16 @@ void Server::handleCloseMessage(WebSocketMessage &message) {
             Address address;
             if (!address.ipUpdate(it->second)) {
                 spdlog::info("disconnect: {}", address.getIpStr());
+                this->ipClientMap.erase(it->second);
             }
             this->ipWsMap.erase(it->second);
         }
         this->wsIpMap.erase(it);
     }
     this->wsMacMap.erase(message.conn);
+
+    // 更新客户端列表
+    updateClientList();
 }
 
 void Server::updateClientRoute(WebSocketMessage &message, uint32_t client) {
@@ -525,6 +536,19 @@ void Server::updateClientRoute(WebSocketMessage &message, uint32_t client) {
 
     if (header->size > 0) {
         this->ws.write(message);
+    }
+}
+
+void Server::updateClientList() {
+    std::string clientListTxt = "/var/lib/candy/clientlist.txt";
+    std::ofstream output_file(clientListTxt);
+    if (output_file.is_open()) {
+        for (auto &route : this->ipClientMap) {
+            spdlog::info("client:{},ip:{}", route.second, Address::ipToStr(route.first));
+            output_file << "client:" << route.second << "," << "ip:" << Address::ipToStr(route.first) << "\n";
+        }
+
+        spdlog::info("客户端列表文件已更新");
     }
 }
 

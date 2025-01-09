@@ -12,6 +12,14 @@ AuthHeader::AuthHeader(uint32_t ip) {
     this->timestamp = Time::hostToNet(Time::unixTime());
 }
 
+void AuthHeader::setName(const std::string &name) {
+    strncpy(this->name, name.c_str(), sizeof(this->name) - 1);
+}
+
+std::string AuthHeader::getName() const {
+    return std::string(name);
+}
+
 void AuthHeader::updateHash(const std::string &password) {
     std::string data;
     data.append(password);

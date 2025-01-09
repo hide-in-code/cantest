@@ -104,6 +104,12 @@ std::map<std::string, std::string> parseConfig(const std::string &filename) {
             config[key] = value;
         }
     }
+
+    // 从环境变量获取名称
+    if (auto envName = std::getenv("UTO_NAME")) {
+        config["name"] = envName;
+    }
+
     return config;
 }
 

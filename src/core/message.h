@@ -28,10 +28,13 @@ struct AuthHeader {
     uint32_t ip;
     int64_t timestamp;
     uint8_t hash[SHA256_DIGEST_LENGTH];
+    char name[256]; // 存取客户端的名字，假定最长256个字符
 
     AuthHeader(uint32_t ip);
     void updateHash(const std::string &password);
+    void setName(const std::string &name);
     bool check(const std::string &password);
+    std::string getName() const;
 } __attribute__((packed));
 
 struct ForwardHeader {
