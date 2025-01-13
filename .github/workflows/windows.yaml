@@ -1,0 +1,61 @@
+name: release
+
+on:
+  push:
+    branches: [ master ]
+  release:
+    types: [ published ]
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+    - name: setup msys2
+      uses: msys2/setup-msys2@v2
+      with:
+        msystem: MINGW64
+        update: true
+        install: >-
+          mingw-w64-x86_64-cmake
+          mingw-w64-x86_64-ninja
+          mingw-w64-x86_64-gcc
+          mingw-w64-x86_64-spdlog
+          mingw-w64-x86_64-poco
+    - name: checkout
+      uses: actions/checkout@v4
+    - name: cache
+      uses: actions/cache@v4
+      with:
+        path: build
+        key: ${{ hashFiles('CMakeLists.txt') }}
+    - name: build
+      shell: msys2 {0}
+      run: |
+        cmake -B build -DCMAKE_BUILD_TYPE=Release && cmake --build build
+        mkdir artifact
+        cp candy.cfg artifact
+        cp build/src/tun/wintun/bin/amd64/wintun.dll artifact
+        scripts/search-deps.sh build/src/main/candy.exe artifact
+    - name: set release package name
+      shell: bash
+      if: github.event_name == 'release'
+      run: |
+        GIT_TAG=${{ github.event.release.tag_name }}
+        echo "PKGNAME=candy_${GIT_TAG#v}+windows_amd64" >> $GITHUB_ENV
+    - name: upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: windows-${{ github.event.release.tag_name || github.sha }}
+        path: artifact
+    - name: zip release
+      uses: thedoctor0/zip-release@0.7.5
+      if: github.event_name == 'release'
+      with:
+        type: 'zip'
+        filename: ${{ env.PKGNAME }}.zip
+        directory: artifact
+    - name: upload release
+      uses: softprops/action-gh-release@v2
+      if: github.event_name == 'release'
+      with:
+        files: artifact/${{ env.PKGNAME }}.zip
