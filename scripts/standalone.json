@@ -2,11 +2,7 @@
     "include": [
         {
             "os": "linux",
-            "arch": "arm"
-        },
-        {
-            "os": "linux",
-            "arch": "armhf"
+            "arch": "aarch64"
         },
         {
             "os": "linux",
