@@ -41,7 +41,8 @@ if [ ! -d "$COMPILER_ROOT" ]; then
     mkdir -p $TOOLCHAINS
     RESPONSE=$(curl -s https://api.github.com/repos/musl-cross/musl-cross/releases/latest)
     VERSION=$(echo "$RESPONSE" | grep 'tag_name' | cut -d'"' -f4)
-    wget -c https://github.com/musl-cross/musl-cross/releases/download/$VERSION/$TARGET.tar.xz -P $TOOLCHAINS
+    #wget -c https://github.com/musl-cross/musl-cross/releases/download/$VERSION/$TARGET.tar.xz -P $TOOLCHAINS
+    wget -c https://github.com/musl-cross/musl-cross/releases/download/20250815/$VERSION/$TARGET.tar.xz -P $TOOLCHAINS
     tar xvf $COMPILER_ROOT.tar.xz -C $TOOLCHAINS
 fi
 
