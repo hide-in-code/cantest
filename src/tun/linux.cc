@@ -19,7 +19,7 @@ namespace {
 class LinuxTun {
 public:
     int setName(const std::string &name) {
-        this->name = name.empty() ? "utodata" : "utodata-" + name;
+        this->name = name.empty() ? "piadata" : "piadata-" + name;
         return 0;
     }
 
